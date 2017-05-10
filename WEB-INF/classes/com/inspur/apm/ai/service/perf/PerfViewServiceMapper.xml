@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.ai.service.perf.PerfViewServiceMapper">
+    <!-- 获取AI的tomcat列表页中统计数据，包括30分钟内平均响应时间、平均吞吐量、错误率--> 
+    <select id="queryTomcatList" parameterType="map" resultType="map">
+        SELECT *  FROM  APM_MW_CMDB CMDB 
+        LEFT JOIN 
+        (SELECT PERF.RES_ID AS M_RES_ID, ROUND(SUM(PERF.AVG_TIME*PERF.REQ_COUNT)/SUM(PERF.REQ_COUNT),0) AS RSP_TIME, ROUND(AVG(REQ_COUNT)/5,1) AS CPM, ROUND(AVG(ERROR_COUNT)*100/AVG(REQ_COUNT),1) AS ERR_RATIO,
+        ROUND(AVG(SESSIONS_ACTIVE),1) AS SESSION FROM APM_AI_PERF_SNAP PERF,APM_AI_ENV_SNAP ENV 
+        WHERE PERF.RES_ID = ENV.RES_ID  AND  PERF.SNAPSHOT_DATE >= #{FROM_DATE} AND  ENV.SNAPSHOT_DATE >= #{FROM_DATE}  
+        group by M_RES_ID) MONI 
+        ON CMDB.RES_ID = MONI.M_RES_ID  
+        WHERE '1'='1'
+         <if test="USER_ID != null">
+			AND CMDB.USER_ID = #{USER_ID}
+		</if>
+         <if test="IS_GRAY!=null">
+            AND CMDB.IS_GRAY =#{IS_GRAY}
+        </if> 
+        <if test="GRAY_ID!=null">
+            AND CMDB.GRAY_ID = #{GRAY_ID}
+        </if>  ORDER BY GRAY_ID DESC
+    </select>
+
+    <!-- 1、获取性能区间数据 --> 
+    <select id="queryPerfRegion" parameterType="map" resultType="map">
+        SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H:%i') AS SNAPSHOT_DATE, AVG_TIME, REQ_COUNT,ERROR_COUNT
+        FROM APM_AI_PERF_SNAP
+        WHERE RES_ID=#{SERVER_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+          <if test="PAGE_URL!=null">
+            AND PAGE_URL = #{PAGE_URL}
+          </if>
+        GROUP BY DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H:%i')
+    </select>
+    
+    <!-- 2、获取某个Tomcat上某时间之后的慢事务数据 --> 
+    <select id="querySlowReq" parameterType="map" resultType="map">
+        SELECT RES_ID, URL, SNAPSHOT_DATE, ROUND(SUM(AVG_TIME*REQ_COUNT)/SUM(REQ_COUNT),0) AS AVG_TIME, SUM(REQ_COUNT)  AS REQ_COUNT 
+        FROM APM_AI_SLOWREQ_SNAP
+        WHERE RES_ID=#{SERVER_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+          <if test="PAGE_URL!=null">
+            AND PAGE_URL = #{PAGE_URL}
+          </if>
+        GROUP BY URL ORDER BY AVG_TIME DESC LIMIT 5
+    </select>
+    
+    <!-- 3、获取某个Tomcat上错误事务统计数据 --> 
+    <select id="queryErrReq" parameterType="map" resultType="map">
+    SELECT RES_ID, ERROR_URL,SUM(ERROR_COUNT) AS ERROR_COUNT, STATUS_CODE, min(SNAPSHOT_DATE) AS FST, max(SNAPSHOT_DATE) AS LST 
+    FROM APM_AI_ERROREQ_SNAP 
+    WHERE RES_ID=#{SERVER_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+         <if test="PAGE_URL!=null">
+            AND PAGE_URL = #{PAGE_URL}
+         </if>
+    GROUP BY ERROR_URL ORDER BY ERROR_COUNT
+    </select>
+</mapper>

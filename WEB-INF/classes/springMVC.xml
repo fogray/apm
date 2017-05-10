@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xmlns:aop="http://www.springframework.org/schema/aop" 
+  xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/aop  http://www.springframework.org/schema/aop/spring-aop-3.0.xsd  ">
+
+    <!-- 
+        <context:component-scan/> 扫描指定的包中的类上的注解，常用的注解有：
+        
+        @Controller 声明Action组件
+        @Service    声明Service组件    @Service("myMovieLister") 
+        @Repository 声明Dao组件
+        @Component   泛指组件, 当不好归类时. 
+        @RequestMapping("/menu")  请求映射
+        @Resource  用于注入，( j2ee提供的 ) 默认按名称装配，@Resource(name="beanName") 
+        @Autowired 用于注入，(srping提供的) 默认按类型装配 
+        @Transactional( rollbackFor={Exception.class}) 事务管理
+        @ResponseBody
+        @Scope("prototype")   设定bean的作用域
+     -->
+     <!-- Spring容器优先加载由ServletContextListener（对应applicationContext.xml）产生的父容器，
+         而SpringMVC（对应mvc_dispatcher_servlet.xml）产生的是子容器。
+         子容器Controller进行扫描装配时装配的@Service注解的实例是没有经过事务加强处理，
+         即没有事务处理能力的Service，而父容器进行初始化的Service是保证事务的增强处理能力的。
+         如果不在子容器中将Service exclude掉，此时得到的将是原样的无事务处理能力的Service。 -->
+     <context:component-scan base-package="com.inspur" use-default-filters="false">
+         <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" /> 
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service" />   
+     </context:component-scan>
+     
+     <!-- 为spring容器中那些配置@Aspectj切面的bean创建代理 -->
+     <aop:aspectj-autoproxy />
+     
+    <!-- 
+        <mvc:annotation-driven /> 是一种简写形式，完全可以手动配置替代这种简写形式，简写形式可以让初学都快速应用默认配置方案。
+        <mvc:annotation-driven /> 会自动注册DefaultAnnotationHandlerMapping与AnnotationMethodHandlerAdapter 两个bean,
+             是spring MVC为@Controllers分发请求所必须的。并提供了：数据绑定支持，@NumberFormatannotation支持，
+             @DateTimeFormat支持，@Valid支持，读写XML的支持（JAXB），读写JSON的支持（Jackson）。
+            我们处理响应ajax请求时，就使用到了对json的支持。
+            对action写JUnit单元测试时，要从spring IOC容器中取DefaultAnnotationHandlerMapping与AnnotationMethodHandlerAdapter 两个bean，
+            来完成测试，取的时候要知道是<mvc:annotation-driven />这一句注册的这两个bean。
+    -->
+    <!-- 
+    默认的注解映射的支持 
+     如果使用了<mvc:annotation-driven />， 它会自动注册DefaultAnnotationHandlerMapping 与AnnotationMethodHandlerAdapter 
+     这两个bean,所以就没有机会再给它注入interceptors属性，就无法指定拦截器。
+    <mvc:annotation-driven /> -->  
+    <mvc:annotation-driven>
+        <mvc:message-converters>
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>application/json;charset=UTF-8</value>
+                        <value>text/xml;charset=UTF-8</value>
+                        <value>text/html;charset=UTF-8</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+ 
+    
+    <!-- annotation的方法映射适配器      
+        <bean id="handlerAdapter" class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/>     -->     
+    <!--  annotation默认的方法映射适配器      
+        <bean id="handlerMapping" class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>
+     -->
+    <!-- 视图解释类 --> 
+    <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+         <property name="templateLoaderPath" value="/WEB-INF/ftl/"/> 
+        <property name="defaultEncoding">  
+            <value>utf-8</value>  
+        </property>  
+        <property name="freemarkerSettings">  
+            <props>  
+                <prop key="template_update_delay">3600</prop>  
+            </props>  
+        </property> 
+    </bean>
+      <bean id="viewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+          <property name="cache" value="true"/>
+         <property name="prefix" value=""/>
+          <property name="suffix" value=".ftl"/>
+          <property name="contentType" value="text/html; charset=UTF-8"></property>
+      </bean>
+     
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/WEB-INF/jsp/"></property>
+        <property name="suffix" value=".jsp"></property>
+      </bean>
+ 
+    <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+        <property name="mediaTypes">
+          <map>
+            <entry key="json"  value="application/json" />
+            <entry key="xml" value="text/xml" />
+            <entry key="htm" value="text/html" />
+          </map>
+        </property>
+        <property name="defaultContentType" value="application/json" />
+      </bean>
+  
+     <!-- 
+         <mvc:interceptors/> 是一种简写形式。我们可以配置多个HandlerMapping。
+         <mvc:interceptors/>会为每一个HandlerMapping，注入一个拦截器。其实我们也可以手动配置为每个HandlerMapping注入一个拦截器。
+      -->
+    <!-- 
+        Spring为我们提供了：
+        org.springframework.web.servlet.HandlerInterceptor接口，
+        org.springframework.web.servlet.handler.HandlerInterceptorAdapter适配器，
+        实现这个接口或继承此类，可以非常方便的实现自己的拦截器。
+ 
+        有以下三个方法：
+        
+        Action之前执行:
+         public boolean preHandle(HttpServletRequest request,
+           HttpServletResponse response, Object handler);
+         
+        生成视图之前执行
+         public void postHandle(HttpServletRequest request,
+           HttpServletResponse response, Object handler,
+           ModelAndView modelAndView);
+         
+        最后执行，可用于释放资源
+         public void afterCompletion(HttpServletRequest request,
+           HttpServletResponse response, Object handler, Exception ex)
+         
+         
+        分别实现预处理、后处理（调用了Service并返回ModelAndView，但未进行页面渲染）、返回处理（已经渲染了页面） 
+        在preHandle中，可以进行编码、安全控制等处理； 
+        在postHandle中，有机会修改ModelAndView； 
+        在afterCompletion中，可以根据ex是否为null判断是否发生了异常，进行日志记录。 
+        参数中的Object handler是下一个拦截器。
+     -->
+    
+    <!--配置拦截器, 多个拦截器,顺序执行 -->
+    <mvc:interceptors>
+    
+        <!--ST认证的拦截器-->
+        <!-- <mvc:interceptor> 
+            <mvc:mapping path="/**" />
+            <bean class="com.inspur.lambo.framework.mvc.StAuthInteceptor"></bean>
+        </mvc:interceptor>
+         -->
+        <!--EUC认证的拦截器-->
+        <!-- <mvc:interceptor> 
+            <mvc:mapping path="/**" />
+            <bean class="com.inspur.lambo.framework.mvc.EUcAuthInterceptor"></bean>
+        </mvc:interceptor>
+         -->
+        <!--BSP认证的拦截器-->
+        <!-- <mvc:interceptor> 
+            <mvc:mapping path="/**" />
+            <bean class="com.inspur.lambo.framework.mvc.BspAuthInteceptor"></bean>
+        </mvc:interceptor>
+         -->
+        <mvc:interceptor> 
+            <mvc:mapping path="/**" />
+            <bean class="com.inspur.lambo.framework.mvc.AuthInteceptor"></bean>
+        </mvc:interceptor>
+        <!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
+    </mvc:interceptors>
+         
+      <mvc:default-servlet-handler/> 
+    <!-- 
+          <mvc:default-servlet-handler/> 使用默认的Servlet来响应静态文件。
+        <mvc:resources mapping="/images/**" location="/images/" cache-period="31556926"/> 匹配URL  /images/**  的URL被当做静态资源，由Spring读出到内存中再响应http。
+    -->
+    <!-- 对静态资源文件的访问  方案一 （二选一）  -->  
+    <!-- <mvc:default-servlet-handler/>    -->  
+   
+    <!-- 对静态资源文件的访问  方案二 （二选一）
+    <mvc:resources mapping="/images/**" location="/skins/images/" cache-period="31556926"/>  
+    <mvc:resources mapping="/js/**" location="/skins/js/" cache-period="31556926"/>  
+    <mvc:resources mapping="/css/**" location="/skins/css/" cache-period="31556926"/> 
+    <mvc:resources mapping="/bootstrap/**" location="/skins/bootstrap/" cache-period="31556926"/> -->
+    <!-- 
+    <mvc:resources mapping="/skins/**" location="/skins/" cache-period="31556926"/>  
+    -->
+    <mvc:resources mapping="/skins/**" location="/skins/" cache-period="31556926"/>
+    <mvc:resources mapping="/jsp/**" location="/WEB-INF/jsp/" cache-period="31556927"/>
+    
+    <!-- 总错误处理
+        你也可以实现HandlerExceptionResolver接口。
+        通过SimpleMappingExceptionResolver我们可以将不同的异常映射到不同的jsp页面（通过exceptionMappings属性的配置）。
+        同时我们也可以为所有的异常指定一个默认的异常提示页面（通过defaultErrorView属性的配置），
+        如果所抛出的异常在exceptionMappings中没有对应的映射，则Spring将用此默认配置显示异常信息。
+        注意这里配置的异常显示界面均仅包括主文件名，至于文件路径和后缀已经在viewResolver中指定。如/error/error表示/error/error.jsp
+
+    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">  
+        <property name="defaultErrorView">    
+            <value>error/error</value>  
+        </property>  
+        <property name="defaultStatusCode">    
+            <value>500</value>  
+        </property>     
+        <property name="warnLogCategory">    
+            <value>org.springframework.web.servlet.handler.SimpleMappingExceptionResolver</value>  
+        </property>     
+    </bean>      -->  
+
+    <!-- 全局异常配置   -->
+    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <prop key="java.lang.Exception">portal/error/error</prop>
+                <prop key="com.inspur.lambo.framework.exception.UrlVisitNoPermitException">portal/error/nopermit</prop>
+            </props>
+        </property>
+        <!-- 
+        <property name="statusCodes">
+            <props>
+                <prop key="error/error">500</prop>
+                <prop key="error/404">404</prop>
+            </props>
+        </property>
+        -->
+        <!-- 设置日志输出级别，不定义则默认不输出警告等错误日志信息 -->
+        <property name="warnLogCategory" value="WARN"></property>
+        <!-- 默认错误页面，当找不到上面mappings中指定的异常对应视图时，使用本默认配置 -->
+        <property name="defaultErrorView" value="error/error"></property>
+        <!-- 默认HTTP状态码 设置为200是为了让应用的错误页面能正常输出，而不被tomcat的错误页拦截 -->
+        <property name="defaultStatusCode" value="200"></property>
+    </bean>
+    
+    <!-- 定时任务 监听器-->
+      <bean class="com.inspur.lambo.plantform.service.support.quartz.QuartzMethodGroup" init-method="doRegisterQuartz"> 
+      </bean>
+    
+</beans>

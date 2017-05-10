@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.ai.service.storage.ExtractDataServiceMapper">
+	
+	<!-- 查询APM_MW_CMDB中所有资源数据 -->
+	<select id="getCmdbRes" parameterType="map" resultType="map">
+		SELECT RES_ID, RES_NAME, IP, PORT, IS_START_SECURITY, ACCESS_NAME, ACCESS_PWD, IS_MONITOR FROM APM_MW_CMDB WHERE '1'='1'
+		<if test="RES_ID != null">
+			AND RES_ID = #{RES_ID}
+		</if>
+		<if test="IS_MONITOR != null">
+			AND IS_MONITOR = #{IS_MONITOR}
+		</if>
+	</select>
+	
+	<!--1、APM_AI_PERF_SNAP 插入一条 性能总览数据-->
+	<insert id="insertPerfSnap" parameterType="map">
+			INSERT INTO APM_AI_PERF_SNAP(
+			RES_ID, 
+			SNAPSHOT_DATE, 
+			REQ_COUNT, 
+			AVG_TIME, 
+			ERROR_COUNT
+			) VALUES (
+			#{RES_ID, jdbcType=VARCHAR},
+			#{SNAPSHOT_DATE, jdbcType=VARCHAR},
+			#{REQ_COUNT, jdbcType=NUMERIC},
+			#{AVG_TIME, jdbcType=NUMERIC},
+			#{ERROR_COUNT, jdbcType=NUMERIC}
+			)
+	</insert>
+	
+	<delete id="deletePerfSnap" parameterType="map">
+		DELETE FROM  APM_AI_PERF_SNAP WHERE RES_ID = #{RES_ID} AND SNAPSHOT_DATE = #{SNAPSHOT_DATE}		
+	</delete>
+	
+	<!--2、APM_AI_ERROREQ_SNAP 插入一条 错误统计数据-->
+	<insert id="insertErrorReqSnap" parameterType="map">
+			INSERT INTO APM_AI_ERROREQ_SNAP(
+			RES_ID,
+			ERROR_URL, 
+			STATUS_CODE, 
+			SNAPSHOT_DATE, 
+			ERROR_COUNT
+			) VALUES (
+			#{RES_ID, jdbcType=VARCHAR},
+			#{ERROR_URL, jdbcType=VARCHAR},
+			#{STATUS_CODE, jdbcType=VARCHAR},
+			#{SNAPSHOT_DATE, jdbcType=VARCHAR},
+			#{ERROR_COUNT, jdbcType=NUMERIC}
+			)
+	</insert>
+	<!--3、APM_AI_SLOWREQ_SNAP 插入一条 慢事务快照数据-->
+	<insert id="insertSlowReqSnap" parameterType="map">
+	       INSERT INTO APM_AI_SLOWREQ_SNAP(
+	       RES_ID, 
+	       URL, 
+	       SNAPSHOT_DATE, 
+	       AVG_TIME, 
+	       REQ_COUNT
+	       )VALUES(
+			#{RES_ID, jdbcType=VARCHAR},
+			#{URL, jdbcType=VARCHAR},
+			#{SNAPSHOT_DATE, jdbcType=VARCHAR},
+			#{AVG_TIME, jdbcType=NUMERIC},
+			#{REQ_COUNT, jdbcType=NUMERIC}
+	       )
+	</insert>
+	<!--4、APM_AI_ENV_SNAP 插入一条 性能总览数据-->
+	<insert id="insertEnvSnap" parameterType="map">
+	       INSERT INTO APM_AI_ENV_SNAP(
+	       RES_ID, 
+	       SNAPSHOT_DATE, 
+	       HEAP_MAX, 
+	       HEAP_COMMITTED, 
+	       HEAP_USED, 
+	       NONHEAP_MAX, 
+	       NONHEAP_COMMITTED, 
+	       NONHEAP_USED, 
+	       GC_MARKSWEEP, 
+	       GC_SCAVENGE, 
+	       LOADEDCLASS, 
+	       THREAD_COUNT, 
+	       THREAD_MAX, 
+	       THREAD_CURRENT, 
+	       THREAD_BUSY, 
+	       SESSIONS_ACTIVE,
+	       SYS_LOAD_AVG,
+	       SYS_CPU_LOAD,
+	       TOTAL_PHYS_MEM,
+	       FREE_PHYS_MEM,
+	       TOTAL_SWAP_SPACE,
+	       FREE_SWAP_SPACE
+	       ) VALUES (
+			#{RES_ID, jdbcType=VARCHAR},
+			#{SNAPSHOT_DATE, jdbcType=VARCHAR},
+			#{HEAP_MAX, jdbcType=NUMERIC},
+			#{HEAP_COMMITTED, jdbcType=NUMERIC},
+			#{HEAP_USED, jdbcType=NUMERIC},
+			#{NONHEAP_MAX, jdbcType=NUMERIC}, 
+			#{NONHEAP_COMMITTED, jdbcType=NUMERIC},
+			#{NONHEAP_USED, jdbcType=NUMERIC},
+			#{GC_MARKSWEEP, jdbcType=NUMERIC},
+			#{GC_SCAVENGE, jdbcType=NUMERIC}, 
+			#{LOADEDCLASS, jdbcType=NUMERIC},
+			#{THREAD_COUNT, jdbcType=NUMERIC}, 
+			#{THREAD_MAX, jdbcType=NUMERIC},
+			#{THREAD_CURRENT, jdbcType=NUMERIC}, 
+			#{THREAD_BUSY, jdbcType=NUMERIC},
+			#{SESSIONS_ACTIVE, jdbcType=NUMERIC},
+			#{SYS_LOAD_AVG, jdbcType=NUMERIC},
+			#{SYS_CPU_LOAD, jdbcType=NUMERIC}, 
+			#{TOTAL_PHYS_MEM, jdbcType=NUMERIC},
+			#{FREE_PHYS_MEM, jdbcType=NUMERIC}, 
+			#{TOTAL_SWAP_SPACE, jdbcType=NUMERIC},
+			#{FREE_SWAP_SPACE, jdbcType=NUMERIC}
+	       )
+	</insert>
+	
+	<!--定时删除 APM_AI_PERF_SNAP、APM_AI_SLOWREQ_SNAP、APM_AI_ERROREQ_SNAP、APM_AI_ENV_SNAP表中的 性能数据-->
+	<delete id="deletePerf" parameterType="map">
+         DELETE FROM  APM_AI_PERF_SNAP WHERE SNAPSHOT_DATE &lt; #{FROM_DATE}		
+	</delete>
+	<delete id="deleteSlow" parameterType="map">
+         DELETE FROM  APM_AI_SLOWREQ_SNAP WHERE SNAPSHOT_DATE &lt; #{FROM_DATE}		
+	</delete>
+	<delete id="deleteErr" parameterType="map">
+         DELETE FROM  APM_AI_ERROREQ_SNAP WHERE SNAPSHOT_DATE &lt; #{FROM_DATE}		
+	</delete>
+	<delete id="deleteEnv" parameterType="map">
+         DELETE FROM  APM_AI_ENV_SNAP WHERE SNAPSHOT_DATE &lt; #{FROM_DATE}		
+	</delete>
+</mapper>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+ <!--  发布高速服务配置
+  <bean id="user.netty" class="com.inspur.hsf.config.spring.proxy.SpringProviderBean">
+	<property name="interfaceName"><value>com.inspur.lambo.plantform.service.uc.user.IUserService</value></property>
+	<property name="target"><ref bean="userService"/></property>
+	<property name="serviceAlias"><value>用户服务测试</value></property>
+  </bean>
+ -->
+</beans>

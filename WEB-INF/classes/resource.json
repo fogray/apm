@@ -1,0 +1,13 @@
+[
+    {
+        url:'/apm/uc/user/resetpassword',
+        name:'用户修改密码',
+        permit:'user1'
+    
+    },
+    {
+        url:'/apm/**',
+        name:'APM控制台',
+        permit:'user1'
+    }
+]

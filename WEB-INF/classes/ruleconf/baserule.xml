@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>	
+	<module id="base_module1" name="基础组件" desc="基础公用的业务规则">
+		<submodule id="base_submodule11" name="基础规则"  >	
+			<rule>
+				<id>SYS_ZONE</id>
+				<desc>1大连,2重庆,3山西,4甘肃,5四川,6广东,7海南,8青海,9云南,10黑龙江,11广西,12吉林,13江西,14内蒙古,15北京,16湖南,17江苏,18陕西,19山东,20宁夏,21贵州,22安徽,23河南,24西藏,25河北，26辽宁27,深圳,28浙江,29新疆,30湖北,31天津,32上海,33福建</desc>
+				<inputtype>text</inputtype>
+				<default>1</default>
+				<suffix></suffix>
+			</rule>			
+		</submodule>		
+	</module>
+	
+
+</rules>

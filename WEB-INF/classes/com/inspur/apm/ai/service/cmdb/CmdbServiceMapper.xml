@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.ai.service.cmdb.CmdbServiceMapper">
+	<!-- 查询所有灰度监控资源 -->
+	<select id="getGrayCmdb" parameterType="map" resultType="map">
+	SELECT CMDB1.*,CMDB2.RES_NAME AS GRAY_NAME,REL.TOMCAT_BASEDIR,REL.HTTP_PORT,REL.APP_DOCBASE,REL.CONTEXT
+	FROM APM_MW_CMDB CMDB1  
+	LEFT JOIN APM_MW_CMDB CMDB2 ON CMDB1.GRAY_ID = CMDB2.RES_ID 
+	LEFT JOIN GRAY_CMDB_REL REL ON CMDB1.RES_ID = REL.RES_ID 
+	WHERE '1' = '1'
+		<if test="RES_ID != null">
+			AND CMDB1.RES_ID = #{RES_ID}
+		</if>
+	     <if test="USER_ID != null">
+			AND CMDB1.USER_ID = #{USER_ID}
+		</if>
+		<if test="IP != null">
+			AND CMDB1.IP = #{IP}
+		</if>
+		<if test="PORT != null">
+			AND CMDB1.PORT = #{PORT}
+		</if>
+		<if test="NIS_GRAY != null">
+			AND CMDB1.IS_GRAY != #{NIS_GRAY}
+		</if> ORDER BY REL.CONTEXT, CMDB1.IS_GRAY, CMDB1.GROUP_NO
+	</select>
+    <!-- 查询所有APM AI监控资源 -->
+	<select id="getCmdb" parameterType="map" resultType="map">
+		SELECT RES_ID,RES_NAME, USER_ID, IP, PORT, IS_START_SECURITY, ACCESS_NAME, ACCESS_PWD, IS_MONITOR, IS_GRAY, GRAY_ID, GROUP_NO
+		FROM APM_MW_CMDB WHERE '1'='1'
+	     <if test="RES_ID != null">
+			AND RES_ID = #{RES_ID}
+		</if>
+	     <if test="USER_ID != null">
+			AND USER_ID = #{USER_ID}
+		</if>
+		<if test="IP != null">
+			AND IP = #{IP}
+		</if>
+		<if test="PORT != null">
+			AND PORT = #{PORT}
+		</if>
+		<if test="IS_GRAY != null">
+			AND IS_GRAY = #{IS_GRAY}
+		</if>
+		 <if test="NIS_GRAY != null">
+			AND IS_GRAY != #{NIS_GRAY}
+		</if> ORDER BY RES_NAME
+	</select>
+	<!-- 插入一条监控资源 -->
+	<insert id="insertCmdb" parameterType="map">
+		INSERT INTO APM_MW_CMDB(
+		RES_ID, 
+		RES_NAME, 
+		USER_ID, 
+		IP, 
+		PORT, 
+		IS_START_SECURITY, 
+		ACCESS_NAME, 
+		ACCESS_PWD, 
+		IS_MONITOR, 
+		IS_GRAY, 
+		GRAY_ID, 
+		GROUP_NO
+		)VALUES(
+		#{RES_ID, jdbcType=VARCHAR},
+		#{RES_NAME, jdbcType=VARCHAR},
+		#{USER_ID, jdbcType=VARCHAR},
+		#{IP, jdbcType=VARCHAR},
+		#{PORT, jdbcType=VARCHAR},
+		#{IS_START_SECURITY, jdbcType=CHAR},
+		#{ACCESS_NAME, jdbcType=VARCHAR},
+		#{ACCESS_PWD, jdbcType=VARCHAR},
+		#{IS_MONITOR, jdbcType=CHAR}, 
+		<choose>
+           <when test="IS_GRAY == null">
+                 '0',
+           </when>
+            <otherwise>
+                 #{IS_GRAY, jdbcType=CHAR},
+            </otherwise>
+        </choose>
+		#{GRAY_ID, jdbcType=VARCHAR},
+		#{GROUP_NO, jdbcType=CHAR}
+		)
+	</insert>
+	<!-- 删除一条监控资源 -->
+	<delete id="deleteCmdb" parameterType="map">
+	   DELETE FROM  APM_MW_CMDB WHERE RES_ID=#{RES_ID}
+	</delete>
+	<!-- 更新一条监控资源 -->
+	<update id="updateCmdb" parameterType="map">
+		UPDATE APM_MW_CMDB
+	    SET 
+		<if test="USER_ID !=null"> 
+		   USER_ID=#{USER_ID,jdbcType=VARCHAR},
+		</if>
+		<if test="IP !=null"> 
+		   IP=#{IP,jdbcType=VARCHAR},
+		</if>
+		<if test="PORT !=null"> 
+		   PORT=#{PORT,jdbcType=VARCHAR},
+		</if>
+		<if test="IS_START_SECURITY!=null"> 
+		   IS_START_SECURITY=#{IS_START_SECURITY,jdbcType=CHAR},
+		</if>
+	    <if test="ACCESS_NAME!=null"> 
+		   ACCESS_NAME=#{ACCESS_NAME,jdbcType=VARCHAR},
+		</if>
+		<if test="ACCESS_PWD!=null"> 
+		   ACCESS_PWD=#{ACCESS_PWD,jdbcType=VARCHAR},
+		</if>
+		<if test="IS_MONITOR!=null"> 
+		   IS_MONITOR=#{IS_MONITOR,jdbcType=CHAR},
+		</if>
+	    <if test="GRAY_ID!=null"> 
+		   GRAY_ID=#{GRAY_ID,jdbcType=CHAR},
+		</if>
+		<if test="GROUP_NO!=null"> 
+		   GROUP_NO=#{GROUP_NO,jdbcType=CHAR},
+		</if>
+		<if test="IS_GRAY!=null"> 
+		   IS_GRAY=#{IS_GRAY,jdbcType=CHAR},
+		</if>
+		   RES_NAME=#{RES_NAME,jdbcType=VARCHAR}
+	    WHERE RES_ID=#{RES_ID}
+	</update>
+</mapper>

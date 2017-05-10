@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.gray.service.publish.GrayPublishServiceMapper">
+     <!-- Tomcat服务管理页面      获取资源 -->
+    <select id="getManagerRes" parameterType="map" resultType="map">
+		SELECT CMDB.*,REL.TOMCAT_BASEDIR,REL.HTTP_PORT,REL.APP_DOCBASE,REL.CONTEXT
+		FROM APM_MW_CMDB CMDB  
+		LEFT JOIN GRAY_CMDB_REL REL ON CMDB.RES_ID = REL.RES_ID
+		WHERE '1'='1' 
+	         <if test="RES_ID != null">
+				AND CMDB.RES_ID = #{RES_ID}
+			 </if>
+             <if test="NIS_GRAY!=null">
+                AND CMDB.IS_GRAY != #{NIS_GRAY}
+             </if> ORDER BY REL.CONTEXT, CMDB.IS_GRAY, CMDB.GROUP_NO
+    </select>
+	<!-- 应用发布页面中      获取资源 -->
+    <select id="getPublishRes" parameterType="map" resultType="map">
+		SELECT CMDB.*,REL.TOMCAT_BASEDIR,REL.HTTP_PORT,REL.APP_DOCBASE,REL.CONTEXT
+		FROM APM_MW_CMDB CMDB  
+		LEFT JOIN GRAY_CMDB_REL REL ON CMDB.RES_ID = REL.RES_ID
+		WHERE '1'='1' 
+	         <if test="RES_ID != null">
+				AND CMDB.RES_ID = #{RES_ID}
+			 </if>
+             <if test="IS_GRAY!=null">
+                AND CMDB.IS_GRAY =#{IS_GRAY}
+             </if> 
+             <if test="GRAY_ID!=null">
+                AND CMDB.GRAY_ID = #{GRAY_ID}
+             </if> ORDER BY GROUP_NO
+    </select>
+    <!-- 灰度环境监控页面中     获取资源 -->
+    <select id="getGrayMoniRes" parameterType="map" resultType="map">
+        SELECT CMDB.* ,MONI.*, REL.TOMCAT_BASEDIR, REL.HTTP_PORT, REL.APP_DOCBASE, REL.CONTEXT  
+        FROM  APM_MW_CMDB CMDB 
+        LEFT JOIN 
+        (SELECT PERF.RES_ID AS M_RES_ID, ROUND(SUM(PERF.AVG_TIME*PERF.REQ_COUNT)/SUM(PERF.REQ_COUNT),0) AS RSP_TIME, ROUND(AVG(REQ_COUNT)/5,1) AS CPM, ROUND(AVG(ERROR_COUNT)*100/AVG(REQ_COUNT),1) AS ERR_RATIO,
+        ROUND(AVG(SESSIONS_ACTIVE),1) AS SESSION FROM APM_AI_PERF_SNAP PERF,APM_AI_ENV_SNAP ENV 
+        WHERE PERF.RES_ID = ENV.RES_ID  AND  PERF.SNAPSHOT_DATE >= #{FROM_DATE} AND  ENV.SNAPSHOT_DATE >= #{FROM_DATE}  
+        group by M_RES_ID) MONI 
+        ON CMDB.RES_ID = MONI.M_RES_ID  
+        LEFT JOIN GRAY_CMDB_REL REL ON CMDB.RES_ID = REL.RES_ID
+        WHERE '1'='1'
+         <if test="USER_ID != null">
+			AND CMDB.USER_ID = #{USER_ID}
+		</if>
+         <if test="IS_GRAY!=null">
+            AND CMDB.IS_GRAY =#{IS_GRAY}
+        </if> 
+        <if test="GRAY_ID!=null">
+            AND CMDB.GRAY_ID = #{GRAY_ID}
+        </if>  ORDER BY GRAY_ID DESC
+    </select>
+</mapper>

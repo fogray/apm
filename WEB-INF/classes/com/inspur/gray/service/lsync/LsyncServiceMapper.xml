@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.gray.service.lsync.LsyncServiceMapper">
+    <!-- 查询需要本地同步的资源 -->
+	<select id="getLsyncRes" parameterType="map" resultType="map">
+		SELECT RES_ID, RES_NAME, USER_ID, IP, GRAY_DOC, RUNTIME_DOC, LSYNC_DATE
+		FROM GRAY_SYNC_CMDB WHERE '1'='1'
+	    <if test="RES_ID != null">
+			AND RES_ID = #{RES_ID}
+		</if>
+	     <if test="USER_ID != null">
+			AND USER_ID = #{USER_ID}
+		</if>
+		<if test="IP != null">
+			AND IP = #{IP}
+		</if>
+	  ORDER BY RES_NAME
+	</select>
+	<!-- 插入一条同步资源 -->
+	<insert id="insertLsync" parameterType="map">
+		INSERT INTO GRAY_SYNC_CMDB(
+		RES_ID, 
+		RES_NAME, 
+		USER_ID, 
+		IP, 
+		GRAY_DOC, 
+		RUNTIME_DOC
+		)VALUES(
+		#{RES_ID, jdbcType=VARCHAR},
+		#{RES_NAME, jdbcType=VARCHAR},
+		#{USER_ID, jdbcType=VARCHAR},
+		#{IP, jdbcType=VARCHAR},
+		#{GRAY_DOC, jdbcType=VARCHAR},
+		#{RUNTIME_DOC, jdbcType=VARCHAR}
+		)
+	</insert>
+	<!-- 删除一条同步资源 -->
+	<delete id="deleteLsync" parameterType="map">
+	   DELETE FROM  GRAY_SYNC_CMDB WHERE RES_ID=#{RES_ID}
+	</delete>
+	<!-- 更新一条监控资源 -->
+	<update id="updateLsync" parameterType="map">
+		UPDATE GRAY_SYNC_CMDB
+	    SET 
+		<if test="USER_ID !=null"> 
+		   USER_ID=#{USER_ID,jdbcType=VARCHAR},
+		</if>
+		<if test="IP !=null"> 
+		   IP=#{IP,jdbcType=VARCHAR},
+		</if>
+		<if test="GRAY_DOC!=null"> 
+		   GRAY_DOC=#{GRAY_DOC,jdbcType=VARCHAR},
+		</if>
+	    <if test="RUNTIME_DOC!=null"> 
+		   RUNTIME_DOC=#{RUNTIME_DOC,jdbcType=VARCHAR},
+		</if>
+	    <if test="LSYNC_DATE!=null"> 
+		   LSYNC_DATE=#{LSYNC_DATE,jdbcType=VARCHAR},
+		</if>
+		   RES_NAME=#{RES_NAME,jdbcType=VARCHAR}
+	    WHERE RES_ID=#{RES_ID}
+	</update>
+</mapper>

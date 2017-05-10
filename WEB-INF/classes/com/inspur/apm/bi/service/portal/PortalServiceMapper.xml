@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.bi.service.portal.PortalServiceMapper">
+    <!-- 获取最新的应用统计数据 -->
+    <select id="queryNewStatisticData" parameterType="map" resultType="map">
+        SELECT IFNULL(A.APDEX,-1) AS APDEX, IFNULL(B.AVG_TIME,-1) AS PERF_AVG_TIME, IFNULL(B.REQ_COUNT,0) AS REQ_COUNT, IFNULL(C.AVG_TIME,-1) AS XHR_AVG_TIME, IFNULL(D.ERR_COUNT,0) AS ERR_COUNT
+        FROM(SELECT ROUND((SUM(SATISFIED_COUNT)+0.5*SUM(TOLERATE_COUNT))/SUM(REQ_COUNT),2) AS APDEX
+        FROM APM_BI_PERF_APDEX_SNAP
+        WHERE SNAPSHOT_DATE >= #{FROM_DATE}
+          AND APP_ID=#{APP_ID}
+        ) A,
+        (SELECT ROUND(SUM(TOTAL_TIME)/SUM(REQ_COUNT)) AVG_TIME, SUM(REQ_COUNT) REQ_COUNT
+        FROM APM_BI_PERF_SNAP
+        WHERE SNAPSHOT_DATE >= #{FROM_DATE}
+          AND APP_ID=#{APP_ID}
+        )B,
+        (SELECT ROUND(SUM(TOTAL_TIME)/SUM(REQ_COUNT)) AVG_TIME
+        FROM APM_BI_XHR_SNAP
+        WHERE SNAPSHOT_DATE >= #{FROM_DATE}
+          AND APP_ID=#{APP_ID}
+        )C,
+        (SELECT SUM(ERR_COUNT) ERR_COUNT 
+        FROM APM_BI_JSERROR_SNAP
+        WHERE SNAPSHOT_DATE >= #{FROM_DATE}
+          AND APP_ID=#{APP_ID}
+          )D
+    </select>
+</mapper>

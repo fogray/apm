@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.bi.service.perf.PerfServiceMapper">
+
+    <!-- 获取性能区间数据 --> 
+    <select id="queryPerfRegion" parameterType="map" resultType="map">
+        SELECT CONCAT(A.SNAPSHOT_HOUR,':', IF(A.MINUTES&lt;10,CONCAT('0',A.MINUTES),A.MINUTES), ':00') AS SNAPSHOT_DATE
+            , A.QUEUEN_TIME, A.REQUEST_TIME, A.RESPONSE_TIME, A.DOM_PARSE_TIME, A.RESOURCE_TIME
+        FROM (SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H') AS SNAPSHOT_HOUR
+              <if test="TIME_INTERVAL == null or TIME_INTERVAL == ''">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/3)*3 AS MINUTES
+              </if>
+              <if test="TIME_INTERVAL != null and TIME_INTERVAL != ''">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS MINUTES
+              </if>
+                , ROUND(AVG((REDIRECT_TIME+CACHE_TIME+DNS_TIME+CONNECT_TIME)/REQ_COUNT)) AS QUEUEN_TIME
+                , ROUND(AVG(REQUEST_TIME/REQ_COUNT)) AS REQUEST_TIME, ROUND(AVG(RESPONSE_TIME/REQ_COUNT)) AS RESPONSE_TIME
+                , ROUND(AVG(DOM_PARSE_TIME/REQ_COUNT)) AS DOM_PARSE_TIME
+                , ROUND(AVG((DOM_CONTENT_TIME+DOM_DRAW_TIME+LOAD_EVENT_TIME)/REQ_COUNT)) AS RESOURCE_TIME
+                FROM APM_BI_PERF_SNAP
+                WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                  <if test="PAGE_URL!=null">
+                    AND PAGE_URL = #{PAGE_URL}
+                  </if>
+                GROUP BY SNAPSHOT_HOUR, MINUTES
+        )A ORDER BY SNAPSHOT_DATE 
+    </select>
+    
+    <!-- 获取性能区间数据 --> 
+    <select id="queryPerfRegionH" parameterType="map" resultType="map">
+        SELECT CONCAT(A.SNAPSHOT_DAY, IF(A.HOURS&lt;10,CONCAT('0',A.HOURS),A.HOURS), ':00:00') AS SNAPSHOT_DATE
+            , A.QUEUEN_TIME, A.REQUEST_TIME, A.RESPONSE_TIME, A.DOM_PARSE_TIME, A.RESOURCE_TIME
+        FROM (SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d ') AS SNAPSHOT_DAY
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/3)*3 AS HOURS
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS HOURS
+              </if>
+                , ROUND(AVG((REDIRECT_TIME+CACHE_TIME+DNS_TIME+CONNECT_TIME)/REQ_COUNT)) AS QUEUEN_TIME
+                , ROUND(AVG(REQUEST_TIME/REQ_COUNT)) AS REQUEST_TIME, ROUND(AVG(RESPONSE_TIME/REQ_COUNT)) AS RESPONSE_TIME
+                , ROUND(AVG(DOM_PARSE_TIME/REQ_COUNT)) AS DOM_PARSE_TIME
+                , ROUND(AVG((DOM_CONTENT_TIME+DOM_DRAW_TIME+LOAD_EVENT_TIME)/REQ_COUNT)) AS RESOURCE_TIME
+                FROM APM_BI_PERF_SNAP
+                WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                  <if test="PAGE_URL!=null">
+                    AND PAGE_URL = #{PAGE_URL}
+                  </if>
+                GROUP BY SNAPSHOT_DAY, HOURS
+        )A ORDER BY SNAPSHOT_DATE
+    </select>
+    
+    <!-- 获取Apdex数据 --> 
+    <select id="queryApdexTrend" parameterType="map" resultType="map">
+        SELECT CONCAT(A.SNAPSHOT_HOUR,':', IF(A.MINUTES&lt;10,CONCAT('0',A.MINUTES),A.MINUTES), ':00') AS SNAPSHOT_DATE
+            , A.APDEX, A.SATISFIED_COUNT, A.TOLERATE_COUNT, A.DIS_SATISFIED_COUNT
+        FROM (SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H') AS SNAPSHOT_HOUR
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/3)*3 AS MINUTES
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS MINUTES
+              </if>
+                , ROUND(AVG(APDEX), 2) APDEX
+                , SUM(SATISFIED_COUNT) SATISFIED_COUNT, SUM(TOLERATE_COUNT) TOLERATE_COUNT, SUM(DIS_SATISFIED_COUNT) DIS_SATISFIED_COUNT
+                FROM APM_BI_PERF_APDEX_SNAP
+                WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                GROUP BY SNAPSHOT_HOUR, MINUTES
+        )A ORDER BY SNAPSHOT_DATE
+    </select>
+    <select id="queryApdexTrendH" parameterType="map" resultType="map">
+        SELECT CONCAT(A.SNAPSHOT_DAY, IF(A.HOURS&lt;10,CONCAT('0',A.HOURS),A.HOURS), ':00:00') AS SNAPSHOT_DATE
+            , A.APDEX, A.SATISFIED_COUNT, A.TOLERATE_COUNT, A.DIS_SATISFIED_COUNT
+        FROM (SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d ') AS SNAPSHOT_DAY
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/3)*3 AS HOURS
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS HOURS
+              </if>
+                , ROUND(AVG(APDEX), 2) APDEX
+                , SUM(SATISFIED_COUNT) SATISFIED_COUNT, SUM(TOLERATE_COUNT) TOLERATE_COUNT, SUM(DIS_SATISFIED_COUNT) DIS_SATISFIED_COUNT
+                FROM APM_BI_PERF_APDEX_SNAP
+                WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                GROUP BY SNAPSHOT_DAY, HOURS
+        )A ORDER BY SNAPSHOT_DATE
+    </select>
+    
+    <!-- 获取访问页面性能趋势数据 -->
+    <select id="queryPerfTrend" parameterType="map" resultType="map">
+        SELECT CONCAT(A.SNAPSHOT_HOUR,':', IF(A.MINUTES&lt;10,CONCAT('0',A.MINUTES),A.MINUTES), ':00') AS SNAPSHOT_DATE
+            , A.REQ_COUNT, A.AVG_TIME
+        FROM (SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H') AS SNAPSHOT_HOUR
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/3)*3 AS MINUTES
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS MINUTES
+              </if>
+                , SUM(REQ_COUNT) REQ_COUNT, ROUND(AVG(TOTAL_TIME/REQ_COUNT)) AVG_TIME
+                FROM APM_BI_PERF_SNAP
+                WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                  <if test="PAGE_URL!=null">
+                    AND PAGE_URL = #{PAGE_URL}
+                  </if>
+                GROUP BY SNAPSHOT_HOUR, MINUTES
+        )A ORDER BY SNAPSHOT_DATE
+    </select>
+    <select id="queryPerfTrendH" parameterType="map" resultType="map">
+        SELECT CONCAT(A.SNAPSHOT_DAY, IF(A.HOURS&lt;10,CONCAT('0',A.HOURS),A.HOURS), ':00:00') AS SNAPSHOT_DATE
+            , A.REQ_COUNT, A.AVG_TIME
+        FROM (SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d ') AS SNAPSHOT_DAY
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/3)*3 AS HOURS
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS HOURS
+              </if>
+                , SUM(REQ_COUNT) REQ_COUNT, ROUND(AVG(TOTAL_TIME/REQ_COUNT)) AVG_TIME
+                FROM APM_BI_PERF_SNAP
+                WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                  <if test="PAGE_URL!=null">
+                    AND PAGE_URL = #{PAGE_URL}
+                  </if>
+                GROUP BY SNAPSHOT_DAY, HOURS
+        )A ORDER BY SNAPSHOT_DATE
+    </select>
+    
+    <!-- 获取地域性能数据 -->
+    <select id="queryAreaPerf" parameterType="map" resultType="map">
+        SELECT PROVINCE, ROUND(AVG(TOTAL_TIME/REQ_COUNT)) AVG_TIME, SUM(REQ_COUNT) REQ_COUNT
+        FROM APM_BI_PERF_AREA
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY PROVINCE
+    </select>
+    
+    <!-- 获取运营商统计性能数据 -->
+    <select id="queryOperatorPerf" parameterType="map" resultType="map">
+        SELECT OPERATOR_NAME,  ROUND(SUM(TOTAL_TIME)/SUM(REQ_COUNT)) AVG_TIME, SUM(REQ_COUNT) REQ_COUNT
+        FROM APM_BI_PERF_OPERATOR
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY OPERATOR_NAME
+        ORDER BY AVG(TOTAL_TIME) DESC
+    </select>
+    
+    <!-- 获取浏览器统计性能数据 -->
+    <select id="queryBrowserPerf" parameterType="map" resultType="map">
+        SELECT BROWSER_NAME, ROUND(SUM(TOTAL_TIME)/SUM(REQ_COUNT)) AVG_TIME
+        FROM APM_BI_PERF_BROWSER
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY BROWSER_NAME
+        ORDER BY AVG_TIME DESC
+    </select>
+    
+    <!-- 获取慢加载页面统计性能数据 -->
+    <select id="querySlowPagePerf" parameterType="map" resultType="map">
+        SELECT PAGE_URL, TOTAL_TIME, SNAPSHOT_DATE
+        FROM APM_BI_PERF_SLOW
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        ORDER BY TOTAL_TIME DESC
+        LIMIT ${TOP_NUM}
+    </select>
+    
+    <!-- 获取访问页面List -->
+    <select id="queryPagesList" parameterType="map" resultType="map">
+        SELECT DOMAIN, PAGE_URL, ROUND(SUM(TOTAL_TIME)/SUM(REQ_COUNT)) AVG_TIME
+        FROM APM_BI_PERF_SNAP
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY DOMAIN, PAGE_URL
+        ORDER BY AVG_TIME DESC,DOMAIN, PAGE_URL
+        LIMIT ${TOP_NUM}
+    </select>
+    
+    <!-- 根据域名和url获取页面的慢加载访问列表 -->
+    <select id="querySlowPagesList" parameterType="map" resultType="map">
+        SELECT REQ_ID, DOMAIN, PAGE_URL, BROWSER_NAME, IP, TOTAL_TIME, DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H:%i:%s') AS SNAPSHOT_DATE
+        FROM APM_BI_PERF_SLOW
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        AND DOMAIN = #{DOMAIN} AND PAGE_URL = #{PAGE_URL}
+        ORDER BY SNAPSHOT_DATE DESC, START_TIME DESC
+    </select>
+    
+    <!-- 根据REQ_ID获取慢加载详细信息-->
+    <select id="querySlowPageDetail" parameterType="map" resultType="map">
+        SELECT REQ_ID, DOMAIN, PAGE_URL, BROWSER_NAME, BROWSER_VERSION, IP, OPERATOR_NAME, COUNTRY, PROVINCE, CITY
+                , TOTAL_TIME, REDIRECT_TIME, CACHE_TIME, DNS_TIME, CONNECT_TIME, REQUEST_TIME, RESPONSE_TIME, DOM_PARSE_TIME
+                , DOM_CONTENT_TIME+DOM_DRAW_TIME RESOURCE_TIME, LOAD_EVENT_TIME, DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H:%i:%s') AS SNAPSHOT_DATE
+        FROM APM_BI_PERF_SLOW
+        WHERE REQ_ID = #{REQ_ID} AND APP_ID=#{APP_ID}
+    </select>
+    
+    <!-- 根据req_id获取慢加载的资源统计信息，按照标签类型 -->
+    <select id="queryResTypeStat" parameterType="map" resultType="map">
+        SELECT INDICATOR_TYPE, ROUND(AVG(TOTAL_TIME)) AVG_TIME
+        FROM APM_BI_PERF_ENTRIES
+        WHERE REQ_ID = #{REQ_ID}
+        <if test="INDICATOR_TYPE != null">
+          AND INDICATOR_TYPE = #{INDICATOR_TYPE}
+        </if>
+        GROUP BY INDICATOR_TYPE
+    </select>
+    <!-- 根据req_id获取慢加载的资源统计信息，按照域名 -->
+    <select id="queryResDomainStat" parameterType="map" resultType="map">
+        SELECT SUBSTRING(ENTRY_NAME, 1, LOCATE('/', ENTRY_NAME)-1) DOMAIN, ROUND(AVG(TOTAL_TIME)) AVG_TIME
+        FROM APM_BI_PERF_ENTRIES
+        WHERE REQ_ID = #{REQ_ID}
+        <if test="INDICATOR_TYPE != null">
+          AND INDICATOR_TYPE = #{INDICATOR_TYPE}
+        </if>
+        GROUP BY DOMAIN
+    </select>
+    <!-- 根据req_id获取慢加载的资源列表 -->
+    <select id="queryResourceList" parameterType="map" resultType="map">
+        SELECT ENTRY_NAME, INDICATOR_TYPE, TOTAL_TIME
+        FROM APM_BI_PERF_ENTRIES
+        WHERE REQ_ID = #{REQ_ID}
+        <if test="INDICATOR_TYPE != null">
+            AND INDICATOR_TYPE = #{INDICATOR_TYPE}
+        </if>
+        ORDER BY TOTAL_TIME DESC
+    </select>
+</mapper>

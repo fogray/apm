@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+    xmlns:task="http://www.springframework.org/schema/task" 
+	xsi:schemaLocation="          
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd          
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd          
+      http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd          
+      http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd          
+      http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+	  http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-3.1.xsd
+	  http://www.springframework.org/schema/task  
+      http://www.springframework.org/schema/task/spring-task-3.0.xsd"
+     >
+   
+         
+    <!-- 属性文件读入 -->
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:jdbc.properties</value>
+                <value>classpath:thread.properties</value>
+            </list>
+        </property>
+    </bean>
+    
+     <!-- 数据源读写分离TDDL 监听器-->
+     <!-- 
+    <bean class="com.inspur.lambo.framework.listener.TddlConfigInit" init-method="init"> 
+    </bean> -->
+    
+    <context:component-scan base-package="com.inspur" >
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+    </context:component-scan> 
+    
+
+  	 <!-- Mybatis's sqlSessionFactory config -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="multipleDataSource"></property>
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>		
+	</bean>
+	
+	<!-- scan  mappers and let them be autowired -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>    
+		<property name="basePackage" value="com.inspur.*" />
+	</bean>
+	
+	
+	<import resource="datasource.xml"/>
+	
+	
+	<bean name="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="multipleDataSource"></property>
+		<property name="globalRollbackOnParticipationFailure" value="false" />
+	</bean>
+  	
+  	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+	<!-- 事务控制的业务方法配 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+            <tx:method name="delete*" propagation="REQUIRED" />
+            <tx:method name="update*" propagation="REQUIRED" />
+         
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+		<aop:pointcut id="serviceOperation"	expression="execution(* com.inspur..*.service..*(..))" />
+		<aop:advisor advice-ref="txAdvice"	pointcut-ref="serviceOperation" />
+	</aop:config>
+	
+    <!-- 激活@Aspect注解支持 -->
+	<aop:aspectj-autoproxy/> 
+    <!-- 激活annotation功能 -->
+	<context:annotation-config />
+	<!-- 激活annotation功能 -->
+	<context:spring-configured/>
+
+	<!-- 缓存注解声明，使用注解缓存 -->
+	<cache:annotation-driven cache-manager="cacheManager" />
+	<!-- 指定ehcache.xml的位置 -->
+	<bean id="cacheManagerFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean" p:configLocation="classpath:/ehcache.xml" />
+	<!-- 声明缓存Manager -->
+	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager" p:cacheManager-ref="cacheManagerFactory" />
+
+	<!-- 线程池 -->
+	<bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="${threadpool.corePoolSize}" />
+		<property name="keepAliveSeconds" value="${threadpool.keepAliveSeconds}" />
+		<property name="maxPoolSize" value="${threadpool.maxPoolSize}" />
+		<property name="queueCapacity" value="${threadpool.queueCapacity}" />
+	</bean>
+	
+	<!-- 根据beanName获取bean实例的工具类 -->
+	<bean id="springContextUtil" class="com.inspur.lambo.framework.util.SpringContextUtil" lazy-init="false"/>
+
+	
+	<!-- axis2 相关配置 -->
+	<bean id="applicationContext" class="org.apache.axis2.extensions.spring.receivers.ApplicationContextHolder" />
+	
+	<task:annotation-driven executor="taskExecutor" />
+	
+	<!-- 发布高速服务的配置文件 -->
+	<import resource="../services/hsf/hsfconf.xml"/>
+	
+</beans> 
+

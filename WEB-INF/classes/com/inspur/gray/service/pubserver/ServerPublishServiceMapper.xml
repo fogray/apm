@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.gray.service.pubserver.ServerPublishServiceMapper">
+    <!-- 以主机为单位发布应用页面中      获取待发布资源对应灰度机器的IP -->
+    <select id="getGrayRes" parameterType="map" resultType="map">
+		SELECT IP FROM APM_MW_CMDB WHERE RES_ID = #{RES_ID}
+    </select>    
+    <!-- 以主机为单位发布应用页面中      获取待发布的生产环境应用资源 -->
+    <select id="getPublishRes" parameterType="map" resultType="map">
+		SELECT CMDB.*,REL.TOMCAT_BASEDIR,REL.HTTP_PORT,REL.APP_DOCBASE,REL.CONTEXT
+		FROM APM_MW_CMDB CMDB  
+		LEFT JOIN GRAY_CMDB_REL REL ON CMDB.RES_ID = REL.RES_ID
+		WHERE IS_GRAY = '2' 
+	         <if test="RES_ID != null">
+				AND CMDB.RES_ID = #{RES_ID}
+			 </if>
+             <if test="IP!=null">
+                AND CMDB.IP =#{IP}
+             </if> ORDER BY GROUP_NO
+    </select>
+    
+    <!-- 查询所有生产环境主机的IP -->
+	<select id="getRunTimeIP" parameterType="map" resultType="map">
+		SELECT  DISTINCT  IP FROM APM_MW_CMDB WHERE IS_GRAY = '2' ORDER BY IP
+	</select>
+    
+</mapper>

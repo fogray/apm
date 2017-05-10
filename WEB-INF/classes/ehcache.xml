@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache>
+	<diskStore path="java.io.tmpdir" />
+	<defaultCache maxElementsInMemory="500" 
+		eternal="false" 
+		timeToIdleSeconds="300" 
+		timeToLiveSeconds="1200" 
+		overflowToDisk="false" />
+	<cache name="DEFAULT_CACHE" 
+		maxElementsInMemory="5000" 
+		eternal="false" 
+		timeToIdleSeconds="600" 
+		timeToLiveSeconds="1800" 
+		overflowToDisk="false" />
+	<cache name="PERMIT_CACHE" 
+        maxElementsInMemory="5000" 
+        eternal="false" 
+        timeToIdleSeconds="600" 
+        timeToLiveSeconds="1800" 
+        overflowToDisk="false" />
+</ehcache>

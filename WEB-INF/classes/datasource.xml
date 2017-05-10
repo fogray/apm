@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+
+<beans>
+    <!-- jndi数据源配置,tomcat 
+    <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"> 
+        <property name="jndiName"> <value>java:comp/env/jdbc/lambo</value> </property> 
+    </bean> 
+    -->
+
+    <!--JNDI datasource configuration for DB2/Oracle masterDB -->
+    <!--<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName"><value>jdbc/itm</value></property> 
+    </bean> -->
+    
+    <!-- jdbc数据源配置 -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy">
+        <constructor-arg ref="dhcpdataSource"/>
+    </bean>
+    <bean id="dhcpdataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+        <property name="driverClassName" value="${datasource.driver}" />
+        <property name="url" value="${datasource.url}" />
+        <property name="username" value="${datasource.username}" />
+        <property name="password" value="${datasource.password}" />
+        <property name="initialSize" value="1" />
+        <property name="maxActive" value="100" />
+        <property name="maxIdle" value="100" />
+        <property name="poolPreparedStatements" value="false" />
+    </bean>
+    <!-- 
+    <bean id="dataSource" class="com.taobao.tddl.group.jdbc.TGroupDataSource" init-method="init">       
+         <property name="appName" value="itmq"/>
+        <property name="DbGroupKey" value="groupKey00" />
+    </bean>
+    <bean id="dataSource2" class="com.taobao.tddl.group.jdbc.TGroupDataSource" init-method="init">  
+        <property name="appName" value="lambo"/>
+        <property name="DbGroupKey" value="groupKey00" />
+        <property name="DbGroupKey" value="groupKey01" />
+    </bean>
+    -->
+
+    <bean id="multipleDataSource" class="com.inspur.lambo.framework.mvc.MultipleDataSource">
+        <property name="defaultTargetDataSource" ref="dataSource" />
+        <property name="targetDataSources">
+            <map>
+                <entry key="defaultDataSource" value-ref="dataSource" />
+                <!-- 
+                <entry key="testDataSource" value-ref="dataSource2" />
+                 -->
+            </map>
+        </property>
+    </bean>
+</beans>

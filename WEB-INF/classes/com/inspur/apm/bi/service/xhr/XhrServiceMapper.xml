@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.bi.service.xhr.XhrServiceMapper">
+
+    <!-- 获取异步请求性能趋势数据 -->
+    <select id="queryXhrTrend" parameterType="map" resultType="map">
+	    SELECT CONCAT(A.SNAPSHOT_HOUR,':', IF(A.MINUTES&lt;10,CONCAT('0',A.MINUTES),A.MINUTES), ':00') AS SNAPSHOT_DATE
+	    , A.REQ_COUNT, A.AVG_TIME
+	   FROM (SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H') AS SNAPSHOT_HOUR
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/3)*3 AS MINUTES
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS MINUTES
+              </if>
+	        , SUM(REQ_COUNT) REQ_COUNT, ROUND(AVG(TOTAL_TIME/REQ_COUNT)) AS AVG_TIME
+	        FROM APM_BI_XHR_SNAP
+	        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+	        <if test="DOMAIN != null">
+	          AND DOMAIN = #{DOMAIN}
+	        </if>
+	        <if test="RESP_URL != null">
+	          AND RESP_URL = #{RESP_URL}
+	        </if>
+	        GROUP BY SNAPSHOT_HOUR, MINUTES
+	    ) A ORDER BY SNAPSHOT_DATE
+    </select>
+    <select id="queryXhrTrendH" parameterType="map" resultType="map">
+        SELECT CONCAT(A.SNAPSHOT_DAY, IF(A.HOURS&lt;10,CONCAT('0',A.HOURS),A.HOURS), ':00:00') AS SNAPSHOT_DATE
+        , A.REQ_COUNT, A.AVG_TIME
+       FROM (SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d ') AS SNAPSHOT_DAY
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/3)*3 AS HOURS
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS HOURS
+              </if>
+            , SUM(REQ_COUNT) REQ_COUNT, ROUND(AVG(TOTAL_TIME/REQ_COUNT)) AS AVG_TIME
+            FROM APM_BI_XHR_SNAP
+            WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+            <if test="DOMAIN != null">
+              AND DOMAIN = #{DOMAIN}
+            </if>
+            <if test="RESP_URL != null">
+              AND RESP_URL = #{RESP_URL}
+            </if>
+            GROUP BY SNAPSHOT_DAY, HOURS
+        ) A ORDER BY SNAPSHOT_DATE
+    </select>
+    
+    <!-- 获取异步请求列表 -->
+    <select id="queryXhrList" parameterType="map" resultType="map">
+        SELECT DOMAIN, RESP_URL, ROUND(SUM(TOTAL_TIME)/SUM(REQ_COUNT)) AS AVG_TIME
+        FROM APM_BI_XHR_SNAP
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY DOMAIN, RESP_URL
+        ORDER BY AVG_TIME DESC
+    </select>
+    
+    <!-- 获取异步请求调用页面统计信息 -->
+    <select id="queryXhrPages" parameterType="map" resultType="map">
+        SELECT PAGE_URL, ROUND(SUM(TOTAL_TIME)/SUM(REQ_COUNT)) AS AVG_TIME, ROUND(SUM(REQ_COUNT)/30,2) AS PPM, SUM(REQ_COUNT) AS REQ_COUNT 
+        FROM APM_BI_XHR_SNAP
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+          AND DOMAIN = #{DOMAIN} AND RESP_URL = #{RESP_URL}
+        GROUP BY PAGE_URL
+    </select>
+</mapper>

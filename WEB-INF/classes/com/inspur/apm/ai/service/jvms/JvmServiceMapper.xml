@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.ai.service.jvms.JvmServiceMapper">
+    <!-- 1、获取某个Tomcat上某时间之后的JVM堆数据--> 
+    <select id="queryJvmSnap" parameterType="map" resultType="map">
+        SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H:%i') AS SNAPSHOT_DATE, HEAP_MAX, HEAP_COMMITTED, HEAP_USED, NONHEAP_MAX, NONHEAP_COMMITTED, NONHEAP_USED, GC_MARKSWEEP, GC_SCAVENGE, LOADEDCLASS
+        FROM APM_AI_ENV_SNAP
+        WHERE RES_ID=#{SERVER_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+          <if test="PAGE_URL!=null">
+            AND PAGE_URL = #{PAGE_URL}
+          </if>
+        ORDER BY SNAPSHOT_DATE
+    </select>
+    
+    <!-- 2、获取某个Tomcat上某时间之后的线程数据 --> 
+    <select id="queryThreadSnap" parameterType="map" resultType="map">
+        SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H:%i') AS SNAPSHOT_DATE, THREAD_COUNT, THREAD_MAX, THREAD_CURRENT, THREAD_BUSY, SESSIONS_ACTIVE
+        FROM APM_AI_ENV_SNAP
+        WHERE RES_ID=#{SERVER_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+          <if test="PAGE_URL!=null">
+            AND PAGE_URL = #{PAGE_URL}
+          </if>
+        ORDER BY SNAPSHOT_DATE
+    </select>
+</mapper>

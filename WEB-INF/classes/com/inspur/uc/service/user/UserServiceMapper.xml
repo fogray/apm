@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.uc.service.user.UserServiceMapper">
+
+	<!-- 所有用户 --> 
+	<select id="findAllUser" parameterType="map" resultType="map">
+		SELECT U.USERID,U.USERNAME,U.EMAIL,U.MOBILE,U.MOTTO,U.QQ,U.USERID,P.GROUP_NAME,P.GROUP_ID FROM SYS_USER U,SYS_GROUP P
+		WHERE U.GROUPIN=P.GROUP_ID
+		<if test="GROUPIN != null and GROUPIN !='' ">
+			AND U.GROUPIN = #{GROUPIN}
+		</if>
+		<if test="USERNAME != null and USERNAME !='' ">
+			AND U.USERNAME LIKE '%${USERNAME}%'
+		</if>
+		<if test="EMAIL != null and EMAIL !='' ">
+			AND U.EMAIL LIKE '%${EMAIL}%'
+		</if>
+	</select>
+	
+	<!-- 通过用户ID查询用户信息 --> 
+	<select id="findUserByUserId" parameterType="String" resultType="map">
+		SELECT USERID,USERNAME,NICKNAME,PASSWORD,EMAIL,GROUPIN,MOBILE,MOTTO,QQ FROM SYS_USER WHERE USERID=#{value}
+	</select>
+
+	<!-- 通过用户名查询用户信息 --> 
+	<select id="findUserByUserName" parameterType="String" resultType="map">
+		SELECT * FROM SYS_USER WHERE USERNAME=#{value}
+	</select>
+	
+	<!-- 通过邮箱查询用户信息 -->
+	<select id="findUserByUserEmail" parameterType="String" resultType="map">
+		SELECT * FROM SYS_USER WHERE EMAIL=#{value}
+	</select>
+	
+	<!-- 新增用户 -->
+	<insert id="insertUser" parameterType="map">
+		INSERT INTO SYS_USER (USERID,USERNAME,NICKNAME,PASSWORD,EMAIL,GROUPIN,MOBILE,MOTTO,QQ)
+		VALUES (#{USERID},#{USERNAME},#{USERNAME},#{PASSWORD},#{EMAIL},#{GROUP},#{MOBILE},#{MOTTO},#{QQ})
+	</insert>
+	
+	<!-- 修改用户 -->
+	<insert id="updateUser" parameterType="map">
+		UPDATE SYS_USER SET GROUPIN=#{GROUP},MOBILE=#{MOBILE},MOTTO=#{MOTTO},QQ=#{QQ},EMAIL=#{EMAIL}
+		WHERE USERID=#{USERID}
+	</insert>
+	
+	<!-- 修改用户密码 -->
+	<insert id="resetPassword" parameterType="map">
+		UPDATE SYS_USER SET PASSWORD=#{password}
+		WHERE USERID=#{userId}
+	</insert>
+	
+	<!-- 查询领域组列表 -->
+	<select id="getGroupList" resultType="map">
+		SELECT GROUP_ID,GROUP_NAME FROM SYS_GROUP WHERE IN_USE ='1' ORDER BY GROUP_ID
+	</select>
+	
+	<!--删除用户 -->
+	<select id="deleteUser" parameterType="String">
+		DELETE FROM SYS_USER WHERE USERID=#{value}
+	</select>
+	
+	<!-- 通过用户名查询用户信息 --> 
+	<select id="getPasswordByUserId" parameterType="String" resultType="map">
+		SELECT PASSWORD FROM SYS_USER WHERE USERID=#{value}
+	</select>
+	
+</mapper>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.ai.service.os.OsServiceMapper">
+    <!-- 获取某个Tomcat上某时间之后的OperatingSystem相关数据--> 
+    <select id="queryOsSnap" parameterType="map" resultType="map">
+        SELECT DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H:%i') AS SNAPSHOT_DATE, SYS_LOAD_AVG, SYS_CPU_LOAD, TOTAL_PHYS_MEM, FREE_PHYS_MEM, TOTAL_SWAP_SPACE, FREE_SWAP_SPACE 
+        FROM APM_AI_ENV_SNAP
+        WHERE RES_ID=#{SERVER_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+          <if test="PAGE_URL!=null">
+            AND PAGE_URL = #{PAGE_URL}
+          </if>
+        ORDER BY SNAPSHOT_DATE
+    </select>
+</mapper>

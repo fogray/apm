@@ -1,0 +1,64 @@
+
+.components{
+    height: 100%;
+}
+.components ul li{
+    float: left;
+    padding: 12px 10px 0;
+    list-style: none;
+}
+.components ul li a{
+    display: block;
+    cursor: pointer;
+    color: #fff !important;
+}
+
+.components .component{
+    float: left;
+    padding: 15px;
+}
+.components .component .portlet{
+    margin: 0px;
+    border-radius: 8px !important;
+}
+.components .component .portlet:hover{
+    opacity: 0.8;
+}
+.components .component .component-up{
+    padding: 30px 10px;
+    cursor: pointer;
+    margin: 0px;
+}
+.components .component .component-up .ai-desc,.components .component .component-up .bi-desc{
+	float: right;
+	font-size: 18px;
+	color: #fff;
+}
+.components .component .component-up .ai-icon{
+    float: left;
+    width: 193px;
+    height: 77px;
+    background: url('img/ai.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+.components .component .component-up .bi-icon{
+    float: left;
+	width: 133px;
+    height: 77px;
+    background: url('img/bi.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+.components .component .component-down{
+    padding: 30px 10px;
+    cursor: pointer;
+    margin: 0px;
+    color: #fff;
+}
+p{
+	color: #fff;
+}
+.components .component .row{
+	margin: 0px !important;
+}

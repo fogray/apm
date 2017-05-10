@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.bi.service.script.ScriptServiceMapper">
+
+    <!-- 获取脚本错误统计数据--> 
+    <select id="queryScriptErrorTrend" parameterType="map" resultType="map">
+        SELECT A.ERROR_MSG
+            , CONCAT(A.SNAPSHOT_HOUR,':', IF(A.MINUTES&lt;10,CONCAT('0',A.MINUTES),A.MINUTES), ':00') AS SNAPSHOT_DATE
+            , A.ERR_COUNT
+        FROM (SELECT ERROR_MSG, DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H') AS SNAPSHOT_HOUR
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/3)*3 AS MINUTES
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS MINUTES
+              </if>
+                , SUM(ERR_COUNT) ERR_COUNT
+                FROM APM_BI_JSERROR_SNAP WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                GROUP BY ERROR_MSG, SNAPSHOT_HOUR, MINUTES
+        )A ORDER BY ERROR_MSG, SNAPSHOT_DATE
+    </select>
+    <select id="queryScriptErrorTrendH" parameterType="map" resultType="map">
+        SELECT A.ERROR_MSG
+            , CONCAT(A.SNAPSHOT_DAY, IF(A.HOURS&lt;10,CONCAT('0',A.HOURS),A.HOURS), ':00:00') AS SNAPSHOT_DATE
+            , A.ERR_COUNT
+        FROM (SELECT ERROR_MSG, DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d ') AS SNAPSHOT_DAY
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/3)*3 AS HOURS
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS HOURS
+              </if>
+                , SUM(ERR_COUNT) ERR_COUNT
+                FROM APM_BI_JSERROR_SNAP WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                GROUP BY ERROR_MSG, SNAPSHOT_DAY, HOURS
+        )A ORDER BY ERROR_MSG, SNAPSHOT_DATE
+    </select>
+    
+    <!-- 获取脚本错误信息列表 -->
+    <select id="queryErrorMsgList" parameterType="map" resultType="map">
+        SELECT ERROR_MSG, SUM(ERR_COUNT) AS ERR_COUNT 
+        FROM APM_BI_JSERROR_SNAP
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY ERROR_MSG
+        ORDER BY SUM(ERR_COUNT) DESC
+    </select>
+    
+    <!-- 获取出错页面列表 -->
+    <select id="queryErrorPageList" parameterType="map" resultType="map">
+        SELECT PAGE_URL, SUM(ERR_COUNT) AS ERR_COUNT 
+        FROM APM_BI_JSERROR_SNAP
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY PAGE_URL
+        ORDER BY SUM(ERR_COUNT) DESC
+    </select>
+    
+    <!-- 获取脚本错误详细信息 -->
+    <select id="queryScriptErrInfo" parameterType="map" resultType="map">
+        SELECT DOMAIN, PAGE_URL, ERROR_FILE, ERROR_LINE, ERROR_MSG
+             , DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H:%i:%I') AS SNAPSHOT_DATE
+             , ERR_COUNT, OS_NAME, OS_VERSION, BROWSER_NAME, BROWSER_VERSION 
+        FROM APM_BI_JSERROR_SNAP
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        <if test="DOMAIN != null">
+          AND DOMAIN = #{DOMAIN}
+        </if>
+        <if test="PAGE_URL != null">
+          AND PAGE_URL = #{PAGE_URL}
+        </if>
+        <if test="ERROR_FILE != null">
+          AND ERROR_FILE = #{ERROR_FILE}
+        </if>
+        <if test="ERROR_MSG != null">
+          AND ERROR_MSG = #{ERROR_MSG}
+        </if>
+    </select>
+</mapper>

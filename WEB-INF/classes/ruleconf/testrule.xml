@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>	
+	<module id="modId1" name="标签页上的模块名称1" desc="不显示内容,方便其他开发人员理解">
+		<submodule id="subModId1" name="子模块1显示的内容" >	
+			<rule>
+				<id>ruleId1</id>
+				<desc>对应数据库ruleDesc字段，解释该规则含义</desc>			
+				<inputtype>text</inputtype>			
+				<default>对应数据库ruleValue字段，提供默认值</default>
+				<suffix>后缀，通常用来展示单位</suffix>
+			</rule>
+			<rule>
+				<id>ruleId2</id>
+				<desc>对应数据库ruleDesc字段，解释该规则含义</desc>				
+				<inputtype>text</inputtype>			
+				<default>对应数据库ruleValue字段，提供默认值</default>
+				<suffix>后缀，通常用来展示单位</suffix>
+			</rule>			
+		</submodule>
+		<submodule id="subModId2" name="子模块1显示的内容" >	
+			<rule>
+				<id>ruleId4</id>
+				<desc>对应数据库ruleDesc字段，解释该规则含义</desc>				
+				<inputtype>select</inputtype>
+				<default>1</default>
+				<dataCollection>1:A;2:B;3:C</dataCollection>
+				<suffix>后缀，通常用来展示单位</suffix>
+			</rule>	
+			<rule>
+				<id>ruleId5</id>
+				<desc>对应数据库ruleDesc字段，解释该规则含义</desc>				
+				<inputtype>checkbox</inputtype>
+				<default>1</default>
+				<dataCollection>1:A;2:B;3:C</dataCollection>
+				<suffix>后缀，通常用来展示单位</suffix>
+			</rule>	
+			<rule>
+				<id>ruleId6</id>
+				<desc>对应数据库ruleDesc字段，解释该规则含义</desc>				
+				<inputtype>checkbox</inputtype>
+				<default>1</default>
+				<dataCollection>1:A;2:B;3:C</dataCollection>
+				<suffix>后缀，通常用来展示单位</suffix>
+			</rule>	
+		</submodule>
+	</module>
+	<module id="modId2" name="标签页上的模块名称2" desc="不显示内容,方便其他开发人员理解">
+		<submodule id="subModId3" name="子模块3显示的内容" >	
+			<ruleRefType>
+				<id>ruleId3</id>
+				<desc>不对应任何数据库字段，解释该规则含义，建议一个module只包含一个ruleRefType</desc>				
+				<refIdHead>EditGird第一列，对应refId</refIdHead>
+				<ruleValueHead>EditGird第二列，对应ruleValue</ruleValueHead>
+				<ruleDescHead>EditGird第三列，对应ruleDesc</ruleDescHead>
+			</ruleRefType>	
+		</submodule>
+	</module>
+</rules>

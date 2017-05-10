@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.bi.service.receive.ReceiveServiceMapper">
+    
+    <!-- 插入页面性能数据快照 -->
+    <insert id="insertPerfSnap" parameterType="map">
+        INSERT INTO APM_BI_PERF_SNAP(APP_ID, DOMAIN, PAGE_URL, SNAPSHOT_DATE, REQ_COUNT, TOTAL_TIME, REDIRECT_TIME, CACHE_TIME, DNS_TIME, CONNECT_TIME, REQUEST_TIME, RESPONSE_TIME, DOM_PARSE_TIME, DOM_CONTENT_TIME, DOM_DRAW_TIME, LOAD_EVENT_TIME) VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.DOMAIN}, #{entry.PAGE_URL}, #{entry.SNAPSHOT_DATE}, #{entry.REQ_COUNT}, #{entry.TOTAL_TIME}, #{entry.REDIRECT_TIME}, #{entry.CACHE_TIME}, #{entry.DNS_TIME}, #{entry.CONNECT_TIME}, #{entry.REQUEST_TIME}, #{entry.RESPONSE_TIME}, #{entry.DOM_PARSE_TIME}, #{entry.DOM_CONTENT_TIME}, #{entry.DOM_DRAW_TIME}, #{entry.LOAD_EVENT_TIME}
+        </foreach>
+    </insert>
+    
+    <!-- 插入慢加载页面请求数据 -->
+    <insert id="insertSlowPerf" parameterType="map">
+        INSERT INTO APM_BI_PERF_SLOW(REQ_ID, APP_ID, DOMAIN, PAGE_URL, SCR_WIDTH, SCR_HEIGHT, BROWSER_NAME, BROWSER_VERSION, IP, OPERATOR_NAME, COUNTRY, PROVINCE, CITY, START_TIME, TOTAL_TIME, REDIRECT_TIME, CACHE_TIME, DNS_TIME, CONNECT_TIME, REQUEST_TIME, RESPONSE_TIME, DOM_PARSE_TIME, DOM_CONTENT_TIME, DOM_DRAW_TIME, LOAD_EVENT_TIME, CLIENT_TIME, SNAPSHOT_DATE)
+        VALUES(#{REQ_ID}, #{APP_ID}, #{DOMAIN}, #{PAGE_URL}, #{SCR_WIDTH}, #{SCR_HEIGHT}, #{BROWSER_NAME}, #{BROWSER_VERSION}, #{IP}, #{OPERATOR_NAME}, #{COUNTRY}, #{PROVINCE}, #{CITY}, #{START_TIME}, #{TOTAL_TIME}, #{REDIRECT_TIME}, #{CACHE_TIME}, #{DNS_TIME}, #{CONNECT_TIME}, #{REQUEST_TIME}, #{RESPONSE_TIME}, #{DOM_PARSE_TIME}, #{DOM_CONTENT_TIME}, #{DOM_DRAW_TIME}, #{LOAD_EVENT_TIME}, #{CLIENT_TIME}, #{SNAPSHOT_DATE})
+    </insert>
+    
+    <!-- 插入慢加载页面请求的资源加载数据 -->
+    <insert id="insertSlowEntries" parameterType="map">
+        INSERT INTO APM_BI_PERF_ENTRIES(REQ_ID, ENTRY_NAME, INDICATOR_TYPE, TOTAL_TIME)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{REQ_ID}, #{entry.name}, #{entry.indicatorType}, #{entry.total}
+        </foreach>
+    </insert>
+    
+    <!-- 插入Apdex用户体验满意度快照数据 -->
+    <insert id="insertApdexSnap" parameterType="map">
+        INSERT INTO APM_BI_PERF_APDEX_SNAP(APP_ID, DOMAIN, PAGE_URL, SNAPSHOT_DATE, REQ_COUNT, SATISFIED_COUNT, TOLERATE_COUNT, DIS_SATISFIED_COUNT, APDEX)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.DOMAIN}, #{entry.PAGE_URL}, #{entry.SNAPSHOT_DATE}, #{entry.REQ_COUNT}, #{entry.SATISFIED_COUNT}, #{entry.TOLERATE_COUNT}, #{entry.DIS_SATISFIED_COUNT}, #{entry.APDEX}
+        </foreach>
+    </insert>
+    
+    <!-- 插入区域统计快照数据 -->
+    <insert id="insertAreaSnap" parameterType="map">
+        INSERT INTO APM_BI_PERF_AREA(APP_ID, COUNTRY, PROVINCE, CITY, SNAPSHOT_DATE, TOTAL_TIME, REQ_COUNT)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.COUNTRY}, #{entry.PROVINCE}, #{entry.CITY}, #{entry.SNAPSHOT_DATE}, #{entry.TOTAL_TIME}, #{entry.REQ_COUNT}
+        </foreach>
+    </insert>
+    
+    <!-- 插入浏览器统计快照数据 -->
+    <insert id="insertBrowserSnap" parameterType="map">
+        INSERT INTO APM_BI_PERF_BROWSER(APP_ID, BROWSER_NAME, BROWSER_VERSION, SNAPSHOT_DATE, REQ_COUNT, TOTAL_TIME, REDIRECT_TIME, CACHE_TIME, DNS_TIME, CONNECT_TIME, REQUEST_TIME, RESPONSE_TIME, DOM_PARSE_TIME, DOM_CONTENT_TIME, DOM_DRAW_TIME, LOAD_EVENT_TIME)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.BROWSER_NAME}, #{entry.BROWSER_VERSION}, #{entry.SNAPSHOT_DATE}, #{entry.REQ_COUNT}, #{entry.TOTAL_TIME}, #{entry.REDIRECT_TIME}, #{entry.CACHE_TIME}, #{entry.DNS_TIME}, #{entry.CONNECT_TIME}, #{entry.REQUEST_TIME}, #{entry.RESPONSE_TIME}, #{entry.DOM_PARSE_TIME}, #{entry.DOM_CONTENT_TIME}, #{entry.DOM_DRAW_TIME}, #{entry.LOAD_EVENT_TIME}
+        </foreach>
+    </insert>
+    
+    <!-- 插入网络运营商统计快照数据 -->
+    <insert id="insertIspSnap" parameterType="map">
+        INSERT INTO APM_BI_PERF_OPERATOR(APP_ID, OPERATOR_NAME, SNAPSHOT_DATE, TOTAL_TIME, REQ_COUNT)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.OPERATOR_NAME}, #{entry.SNAPSHOT_DATE}, #{entry.TOTAL_TIME}, #{entry.REQ_COUNT}
+        </foreach>
+    </insert>
+    
+    <!-- 插入客户端操作系统统计快照数据 -->
+    <insert id="insertOsSnap" parameterType="map">
+        INSERT INTO APM_BI_PERF_OS(APP_ID, OS_NAME, OS_VERSION, SNAPSHOT_DATE, REQ_COUNT)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.OS_NAME}, #{entry.OS_VERSION}, #{entry.SNAPSHOT_DATE}, #{entry.REQ_COUNT}
+        </foreach>
+    </insert>
+    
+    <!-- 插入客户端分辨率统计快照数据 -->
+    <insert id="insertScreenSnap" parameterType="map">
+        INSERT INTO APM_BI_PERF_SCREEN(APP_ID, SCR_WIDTH, SCR_HEIGHT, SNAPSHOT_DATE, REQ_COUNT)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.SCR_WIDTH}, #{entry.SCR_HEIGHT}, #{entry.SNAPSHOT_DATE}, #{entry.REQ_COUNT}
+        </foreach>
+    </insert>
+    
+    <!-- 插入异步请求性能快照数据 -->
+    <insert id="insertXhrSnap" parameterType="map">
+        INSERT INTO APM_BI_XHR_SNAP(APP_ID, DOMAIN, RESP_URL, PAGE_URL, SNAPSHOT_DATE, REQ_COUNT, TOTAL_TIME, REC_BYTES)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.DOMAIN}, #{entry.RESP_URL}, #{entry.PAGE_URL}, #{entry.SNAPSHOT_DATE}, #{entry.REQ_COUNT}, #{entry.TOTAL_TIME}, #{entry.REC_BYTES}
+        </foreach>
+    </insert>
+    
+    <!-- 插入脚本错误性能快照数据 -->
+    <insert id="insertJsErrorSNap" parameterType="map">
+        INSERT INTO APM_BI_JSERROR_SNAP(APP_ID, DOMAIN, PAGE_URL, ERROR_FILE, ERROR_LINE, ERROR_MSG, SNAPSHOT_DATE, ERR_COUNT, OS_NAME, OS_VERSION, BROWSER_NAME, BROWSER_VERSION)
+        VALUES
+        <foreach collection="entryList" item="entry" separator="),(" open="(" close=")">
+            #{entry.APP_ID}, #{entry.DOMAIN}, #{entry.PAGE_URL}, #{entry.ERROR_FILE}, #{entry.ERROR_LINE}, #{entry.ERROR_MSG}, #{entry.SNAPSHOT_DATE}, #{entry.ERR_COUNT}, #{entry.OS_NAME}, #{entry.OS_VERSION}, #{entry.BROWSER_NAME}, #{entry.BROWSER_VERSION}
+        </foreach>
+    </insert>
+</mapper>

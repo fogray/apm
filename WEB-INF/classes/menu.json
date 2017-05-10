@@ -1,0 +1,76 @@
+{
+    defaultType:menu-bi, 
+    menuConfig:{
+        menu-bi:[
+            {
+                url:'/apm/bi/portal/appconsole',
+                icon:'glyphicon glyphicon-th-large',
+                text:'监控台'
+            },
+            {
+                url:'/apm/bi/perf/console',
+                icon:'fa-internet-explorer',
+                text:'访问页面'
+            },
+            {
+                url:'/apm/bi/xhr/console',
+                icon:'glyphicon glyphicon-adjust',
+                text:'异步请求'
+            },
+            {
+                url:'/apm/bi/script/console',
+                icon:'glyphicon glyphicon-info-sign',
+                text:'脚本错误'
+            },
+            {
+                url:'/apm/bi/analyse/forAnalyse',
+                icon:'glyphicon glyphicon-align-left',
+                text:'系统分析'
+            },
+            {
+                url:'/apm/bi/analyse/client/analyse',
+                icon:'glyphicon glyphicon-eye-open',
+                text:'客户端分析'
+            },
+            {
+                url:'/apm/bi/app/forConsole',
+                icon:'glyphicon glyphicon-cog',
+                text:'应用设置'
+            }
+        ],
+        menu-ai:[
+            {
+                url:'/apm/ai/portal/serverconsole',
+                icon:'fa-internet-explorer',
+                text:'监控台'
+            },
+            {
+                url:'/apm/ai/jvms/forMemoryPage',
+                icon:'fa-internet-explorer',
+                text:'JVMs'
+            },
+            {
+                url:'/apm/ai/jvms/forTheadsPage',
+                icon:'fa-internet-explorer',
+                text:'线程监控'
+            },
+            {
+                url:'/apm/ai/envs/forEnvsPage',
+                icon:'fa-internet-explorer',
+                text:'服务器环境'
+            },            
+            {
+                url:'/apm/ai/dumps/forDumpPage',
+                icon:'fa-internet-explorer',
+                text:'Dump文件'
+            }
+        ],
+        menu-uc:[
+                {
+                    url:'/apm/uc/user/list',
+                    icon:'fa-internet-explorer',
+                    text:'用户维护'
+                }
+        ]
+    }
+}

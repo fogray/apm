@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.bi.service.analyse.AnalyseServiceMapper">
+
+    <!-- 获取Apdex满意度统计数据--> 
+    <select id="queryApdexStat" parameterType="map" resultType="map">
+        SELECT SUM(SATISFIED_COUNT) AS SATISFIED_COUNT, SUM(TOLERATE_COUNT) AS TOLERATE_COUNT, SUM(DIS_SATISFIED_COUNT) AS DIS_SATISFIED_COUNT
+        FROM APM_BI_PERF_APDEX_SNAP
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY APP_ID
+    </select>
+    
+    <!-- 获取性能区间分布图--> 
+    <select id="queryPerfSectionGraph" parameterType="map" resultType="map">
+        SELECT AVG((REDIRECT_TIME+CACHE_TIME+DNS_TIME+CONNECT_TIME)/REQ_COUNT) AS QUEUEN_TIME
+        , AVG(REQUEST_TIME/REQ_COUNT) AS REQUEST_TIME, AVG(RESPONSE_TIME/REQ_COUNT) AS RESPONSE_TIME, AVG(DOM_PARSE_TIME/REQ_COUNT) AS DOM_PARSE_TIME
+        , AVG((DOM_CONTENT_TIME+DOM_DRAW_TIME+LOAD_EVENT_TIME)/REQ_COUNT) AS RESOURCE_TIME
+        FROM APM_BI_PERF_SNAP
+        WHERE APP_ID=#{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+          <if test="PAGE_URL!=null">
+            AND PAGE_URL = #{PAGE_URL}
+          </if>
+        GROUP BY APP_ID
+    </select>
+    
+    <!-- 获取客户端操作系统统计数据 -->
+    <select id="queryOsStat" parameterType="map" resultType="map">
+        SELECT OS_NAME, OS_VERSION, SUM(REQ_COUNT) AS REQ_COUNT
+        FROM APM_BI_PERF_OS
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY APP_ID, OS_NAME, OS_VERSION
+    </select>
+    
+    <!-- 获取客户端网络运营商统计数据 -->
+    <select id="queryIspStat" parameterType="map" resultType="map">
+        SELECT OPERATOR_NAME, SUM(REQ_COUNT) AS REQ_COUNT
+        FROM APM_BI_PERF_OPERATOR
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY APP_ID, OPERATOR_NAME
+    </select>
+    
+    <!-- 获取客户端浏览器统计数据 -->
+    <select id="queryBrowserTypeStat" parameterType="map" resultType="map">
+        SELECT BROWSER_NAME, SUM(REQ_COUNT) AS REQ_COUNT
+        FROM APM_BI_PERF_BROWSER
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY APP_ID, BROWSER_NAME
+    </select>
+    
+    <!-- 获取常用TOP N事务统计数据 -->
+    <select id="queryTopPageStat" parameterType="map" resultType="map">
+        SELECT PAGE_URL, SUM(REQ_COUNT) AS REQ_COUNT
+        FROM APM_BI_PERF_SNAP
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY APP_ID, PAGE_URL
+        ORDER BY REQ_COUNT DESC
+        LIMIT ${TOP_NUM}
+    </select>
+    
+    <!-- 根据浏览器类型统计个浏览器趋势数据 -->
+    <select id="queryBrowserTrendData" parameterType="map" resultType="map">
+        SELECT BROWSER_NAME, CONCAT(A.SNAPSHOT_HOUR,':', IF(A.MINUTES&lt;10,CONCAT('0',A.MINUTES),A.MINUTES), ':00') AS SNAPSHOT_DATE
+            , A.REQ_COUNT, A.AVG_TIME
+        FROM (SELECT BROWSER_NAME, DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d %H') AS SNAPSHOT_HOUR
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/3)*3 AS MINUTES
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(MINUTE(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS MINUTES
+              </if>
+                , AVG(TOTAL_TIME/REQ_COUNT) AS AVG_TIME, SUM(REQ_COUNT) AS REQ_COUNT
+                FROM APM_BI_PERF_BROWSER
+                WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                GROUP BY BROWSER_NAME, SNAPSHOT_HOUR, MINUTES
+        )A ORDER BY BROWSER_NAME, SNAPSHOT_DATE
+    </select>
+    <select id="queryBrowserTrendDataH" parameterType="map" resultType="map">
+        SELECT BROWSER_NAME, CONCAT(A.SNAPSHOT_DAY, IF(A.HOURS&lt;10,CONCAT('0',A.HOURS),A.HOURS), ':00:00') AS SNAPSHOT_DATE
+            , A.REQ_COUNT, A.AVG_TIME
+        FROM (SELECT BROWSER_NAME, DATE_FORMAT(SNAPSHOT_DATE, '%Y%m%d ') AS SNAPSHOT_DAY
+              <if test="TIME_INTERVAL == null">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/3)*3 AS HOURS
+              </if>
+              <if test="TIME_INTERVAL != null or TIME_INTERVAL != ''">
+                , FLOOR(HOUR(SNAPSHOT_DATE)/${TIME_INTERVAL})*${TIME_INTERVAL} AS HOURS
+              </if>
+                , AVG(TOTAL_TIME/REQ_COUNT) AS AVG_TIME, SUM(REQ_COUNT) AS REQ_COUNT
+                FROM APM_BI_PERF_BROWSER
+                WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+                GROUP BY BROWSER_NAME, SNAPSHOT_DAY, HOURS
+        )A ORDER BY BROWSER_NAME, SNAPSHOT_DATE
+    </select>
+    
+    <!-- 获取浏览器统计数据 -->
+    <select id="queryBrowserStat" parameterType="map" resultType="map">
+        SELECT BROWSER_NAME, BROWSER_VERSION, SUM(REQ_COUNT) AS REQ_COUNT
+        FROM APM_BI_PERF_BROWSER
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY BROWSER_NAME, BROWSER_VERSION
+        ORDER BY REQ_COUNT ASC
+    </select>
+    
+    <!-- 获取客户端分辨率统计数据 -->
+    <select id="queryClientRatioStat" parameterType="map" resultType="map">
+        SELECT SCR_WIDTH, SCR_HEIGHT, SUM(REQ_COUNT) AS REQ_COUNT
+        FROM APM_BI_PERF_SCREEN
+        WHERE APP_ID = #{APP_ID} AND SNAPSHOT_DATE >= #{FROM_DATE}
+        GROUP BY SCR_WIDTH, SCR_HEIGHT
+        ORDER BY REQ_COUNT ASC
+    </select>
+</mapper>

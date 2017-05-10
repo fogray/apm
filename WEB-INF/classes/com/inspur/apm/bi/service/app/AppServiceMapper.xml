@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.inspur.apm.bi.service.app.AppServiceMapper">
+
+    <!-- 获取应用列表 --> 
+    <select id="queryAppList" parameterType="map" resultType="map">
+        SELECT APP_ID, APP_NAME, APP_DESC, CREATE_USER, CREATE_DATE, SLOW_PAGE_TIME, APDEX_SATIS_BOUND, APDEX_TOLERATE_BOUND
+        FROM APM_BI_APP
+        WHERE CREATE_USER = #{CREATE_USER}
+    </select>
+    
+    <!-- 获取应用信息 -->
+    <select id="queryOneApp" parameterType="String" resultType="map">
+        SELECT APP_ID, APP_NAME, APP_DESC, CREATE_USER, CREATE_DATE, SLOW_PAGE_TIME, APDEX_SATIS_BOUND, APDEX_TOLERATE_BOUND
+        FROM APM_BI_APP
+        WHERE APP_ID=#{value}
+    </select>
+    
+    <!-- 获取应用信息 -->
+    <select id="queryApp" parameterType="map" resultType="map">
+        SELECT APP_ID, APP_NAME, APP_DESC, CREATE_USER, CREATE_DATE, SLOW_PAGE_TIME, APDEX_SATIS_BOUND, APDEX_TOLERATE_BOUND
+        FROM APM_BI_APP
+        WHERE APP_ID=#{APP_ID} AND CREATE_USER = #{CREATE_USER}
+    </select>
+    
+    <!-- 新增应用 -->
+    <select id="getMinAvailableAppId" parameterType="map" resultType="string">
+        SELECT IFNULL(MAX(APP_ID),1000)+1 AS APP_ID FROM APM_BI_APP
+    </select>
+    <insert id="insertApp" parameterType="map">
+        INSERT INTO APM_BI_APP(APP_ID, APP_NAME, APP_DESC, CREATE_USER, CREATE_DATE, SLOW_PAGE_TIME, APDEX_SATIS_BOUND, APDEX_TOLERATE_BOUND)
+        VALUES(#{APP_ID}, #{APP_NAME}, #{APP_DESC}, #{CREATE_USER}, #{CREATE_DATE}, #{SLOW_PAGE_TIME}, #{APDEX_SATIS_BOUND}, #{APDEX_TOLERATE_BOUND})
+    </insert>
+    
+    <!-- 修改应用 -->
+    <update id="updateApp" parameterType="map">
+        UPDATE APM_BI_APP
+        SET APP_NAME = #{APP_NAME}, APP_DESC=#{APP_DESC}, SLOW_PAGE_TIME=#{SLOW_PAGE_TIME}, APDEX_SATIS_BOUND=#{APDEX_SATIS_BOUND}, APDEX_TOLERATE_BOUND=#{APDEX_TOLERATE_BOUND}
+        WHERE APP_ID = #{APP_ID} AND CREATE_USER=#{CREATE_USER}
+    </update>
+</mapper>

@@ -1,0 +1,25 @@
+#app-form>.form-body>.row{
+	padding-left: 10%;
+	padding-right: 10%;
+	margin-top: 15px;
+}
+.form-control[disabled], fieldset[disabled] .form-control{
+    background: transparent;
+    color: #f0f0f0;
+    border: 1px solid #888;
+}
+#appDesc{
+	width: 100%;
+}
+.btn-modify,.btn-cancel{
+	margin-right: 20px;
+}
+.btn-save{
+	margin-right: 5px;
+}
+.control-label{
+	text-align: right;
+}
+input[type="number"]{
+	text-align: right;
+}

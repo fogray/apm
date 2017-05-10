@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemesh>
+  	<mapping path="/" decorator="/WEB-INF/decorators/default_layout.jsp"/>
+    <mapping path="/*/listApp" decorator="/WEB-INF/decorators/portal_layout.jsp"/>
+    <mapping path="/*/listServer" decorator="/WEB-INF/decorators/portal_layout.jsp"/>
+    <mapping path="/ai/cmdb/*" decorator="/WEB-INF/decorators/portal_layout.jsp"/>
+    <mapping path="/portal/dashboard/*" decorator="/WEB-INF/decorators/portal_layout.jsp"/>
+    <mapping path="/ai/*" decorator="/WEB-INF/decorators/ai_default_layout.jsp"/>
+    <mapping path="/bi/*" decorator="/WEB-INF/decorators/bi_default_layout.jsp"/>
+    <mapping path="/uc/*" decorator="/WEB-INF/decorators/uc_default_layout.jsp"/>
+    <mapping path="/*/popup/*" decorator="/WEB-INF/decorators/modal_layout.jsp"/>
+	<mapping path="/index.jsp" exclude="true"/>
+	<mapping path="/jsp/sso.jsp" exclude="true"/>
+	<mapping path="/login" exclude="true"/>
+	<mapping path="/login/*" exclude="true"/>
+	<mapping path="/stlogin" exclude="true"/>
+	<mapping path="/stlogin/*" exclude="true"/>
+	<mapping path="/services/*" exclude="true"/>
+	<mapping path="/axis2-admin/*" exclude="true"/>
+	<mapping path="/openApi/*" exclude="true"/>
+    <mapping path="/collector/*" exclude="true"/>
+	<mapping path="*.jws" exclude="true"/>
+
+</sitemesh>
