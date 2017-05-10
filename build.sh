@@ -7,10 +7,5 @@ touch $buildlog
 echo "*******************start**************" >> $buildlog
 #2 构建image
 docker build -t apm . | tee -a $buildlog
-RESULT=$(cat $buildlog | tail -n 1)
-if [["$RESULT" != *Successfully*]];then
-#3 构建image失败，跳出脚本
-  exit -1
-fi
 
 echo "*******************end**************" >> $buildlog
