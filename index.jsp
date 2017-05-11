@@ -1,5 +1,5 @@
 <div>
-正在跳转到首页......
+Waiting for skip......
 </div>
 <script>
 setTimeout(function(){
