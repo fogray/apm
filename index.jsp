@@ -1,8 +1,8 @@
 <div>
-Waiting for skip 1111......
+Waiting for skip ......
 </div>
 <script>
 setTimeout(function(){
 window.location.href="${ctx}/login";
-}, 10000);
+}, 1000);
 </script>
